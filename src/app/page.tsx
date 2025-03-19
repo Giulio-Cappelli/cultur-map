@@ -1,95 +1,151 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
 
-export default function Home() {
+import {
+  ActionIcon,
+  AppShell,
+  Center,
+  Flex,
+  Loader,
+  Space,
+  Title,
+  useSafeMantineTheme,
+} from "@mantine/core";
+import { IconInfoCircle } from "@tabler/icons-react";
+import { LatLngExpression } from "leaflet";
+import dynamic from "next/dynamic";
+import { useEffect, useMemo, useState } from "react";
+import fetchData from "../components/functions/fetchData";
+import SearchBar from "../components/SearchBar";
+import { Element, OverpassData } from "../components/types/types";
+import { useRouter } from "next/navigation";
+
+const MapDisplayer = dynamic(() => import("../components/map/MapDisplayer"), {
+  ssr: false,
+});
+
+const Home = () => {
+  const router = useRouter();
+  const theme = useSafeMantineTheme();
+
+  const height = 60;
+
+  const [radius, setRadius] = useState<number>(100);
+  const [reload, setReload] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const center = useMemo(
+    () => [46.0649489, 11.1233195] as LatLngExpression,
+    []
+  ); // Trento
+  const [userPosition, setUserPosition] = useState<LatLngExpression | null>(
+    null
+  ); //My position
+  const [data, setData] = useState<Element[] | null>(null);
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        (position) => {
+          setUserPosition([
+            position.coords.latitude,
+            position.coords.longitude,
+          ]);
+        },
+        (error) => {
+          console.error("Error getting user position:", error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        }
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchDataAsync = async () => {
+      setLoading(true);
+      try {
+        const apiData: OverpassData = await fetchData(
+          userPosition ? userPosition : center,
+          radius
+        );
+        setData(apiData.elements);
+        setReload(false);
+        console.log("Data fetched correctly: ", apiData); //DEBUG
+      } catch (error) {
+        console.error("Error fetching data:", error); //DEBUG
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userPosition || reload) {
+      fetchDataAsync();
+    }
+  }, [userPosition, reload]);
+
+  const handleReload = () => {
+    setReload(true);
+  };
+
+  const handleInfoClick = () => {
+    router.push("/about");
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <AppShell header={{ height: height }} padding={"md"}>
+      <AppShell.Header>
+        <Flex
+          h={height}
+          bg={"orange"}
+          gap={"md"}
+          justify={"center"}
+          align={"center"}
+          direction={"row"}
+          wrap={"nowrap"}
+          style={{ position: "relative" }}
+        >
+          <Title order={1} style={{ flex: 1, textAlign: "center" }}>
+            CulturMap
+          </Title>
+          <ActionIcon
+            variant={"outline"}
+            color={"black"}
+            radius={"md"}
+            size={"md"}
+            onClick={handleInfoClick}
+            style={{ position: "absolute", right: theme.spacing.md }}
+          >
+            <IconInfoCircle />
+          </ActionIcon>
+        </Flex>
+      </AppShell.Header>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      <AppShell.Main>
+        <SearchBar
+          height={"10vh"}
+          min={50}
+          max={1000}
+          value={radius}
+          onValueChange={setRadius}
+          reload={handleReload}
+        />
+        <Space h={"md"} />
+        {!loading && data ? (
+          <MapDisplayer
+            data={data}
+            height={"78vh"}
+            userPosition={userPosition ? userPosition : center}
           />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        ) : (
+          <Center>
+            <Loader />
+          </Center>
+        )}
+      </AppShell.Main>
+    </AppShell>
   );
-}
+};
+export default Home;
