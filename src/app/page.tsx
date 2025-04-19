@@ -14,10 +14,10 @@ import { IconInfoCircle } from "@tabler/icons-react";
 import { LatLngExpression } from "leaflet";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
-import fetchData from "../components/functions/fetchData";
 import SearchBar from "../components/SearchBar";
-import { Element, OverpassData } from "../components/types/types";
+import { Element, OverpassData } from "../types/types";
 import { useRouter } from "next/navigation";
+import fetchData from "../functions/fetchData";
 
 const MapDisplayer = dynamic(() => import("../components/map/MapDisplayer"), {
   ssr: false,

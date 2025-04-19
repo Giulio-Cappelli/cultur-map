@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer } from "react-leaflet";
 import MapMarker from "./markers/MapMarker";
 import UserMarker from "./markers/UserMarker";
-import { Element } from "../types/types";
+import { Element } from "../../types/types";
 
 const selectMarkers = (data: Element[]) => {
   return <MapMarker data={data} />;

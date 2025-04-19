@@ -1,7 +1,7 @@
-import { Paper, /*useSafeMantineTheme*/ } from "@mantine/core";
+import { Paper /*useSafeMantineTheme*/ } from "@mantine/core";
 import { DataTable } from "mantine-datatable";
-import { Element } from "./types/types";
 import { useEffect, useRef, useState } from "react";
+import { Element } from "../types/types";
 
 const TableDisplayer = (props: { data: Element[]; height: string }) => {
   const { data, height } = props;
